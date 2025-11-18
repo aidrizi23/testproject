@@ -2,18 +2,21 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ShoppingCart, User, Search, Menu, LogOut, X, Heart } from 'lucide-react';
+import { ShoppingCart, User, Search, Menu, LogOut, X, Heart, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useAuthStore, useCartStore } from '@/lib/store';
+import { useTheme } from '@/components/theme-provider';
 import { useEffect, useState } from 'react';
+import { t } from '@/lib/translations';
 
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuthStore();
   const { cart, fetchCart } = useCartStore();
+  const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -64,7 +67,7 @@ export default function Header() {
           <Link href="/" className="flex items-center space-x-2">
             <ShoppingCart className="h-6 w-6 text-primary" />
             <span className="hidden font-bold sm:inline-block">
-              Ecommerce Store
+              Dyqan Online
             </span>
           </Link>
 
@@ -76,7 +79,7 @@ export default function Header() {
                 pathname === '/products' ? 'text-foreground' : 'text-muted-foreground'
               }`}
             >
-              Products
+              {t('nav.products')}
             </Link>
             <Link
               href="/categories"
@@ -84,7 +87,7 @@ export default function Header() {
                 pathname === '/categories' ? 'text-foreground' : 'text-muted-foreground'
               }`}
             >
-              Categories
+              {t('nav.categories')}
             </Link>
             {user?.isAdmin && (
               <Link
@@ -93,7 +96,7 @@ export default function Header() {
                   pathname?.startsWith('/admin') ? 'text-foreground' : 'text-muted-foreground'
                 }`}
               >
-                Admin
+                {t('nav.admin')}
               </Link>
             )}
           </nav>
@@ -107,6 +110,20 @@ export default function Header() {
             onClick={() => setSearchOpen(!searchOpen)}
           >
             <Search className="h-5 w-5" />
+          </Button>
+
+          {/* Theme Toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="transition-transform hover:scale-110"
+          >
+            {theme === 'dark' ? (
+              <Sun className="h-5 w-5 text-yellow-500" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
           </Button>
 
           {isAuthenticated && (
@@ -146,11 +163,11 @@ export default function Header() {
             <div className="hidden md:flex items-center gap-2">
               <Link href="/login">
                 <Button variant="ghost" size="sm">
-                  Login
+                  {t('nav.login')}
                 </Button>
               </Link>
               <Link href="/register">
-                <Button size="sm">Sign Up</Button>
+                <Button size="sm">{t('nav.register')}</Button>
               </Link>
             </div>
           )}
@@ -164,13 +181,13 @@ export default function Header() {
             <form onSubmit={handleSearch} className="flex gap-2">
               <Input
                 type="search"
-                placeholder="Search products..."
+                placeholder={t('nav.search')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1"
                 autoFocus
               />
-              <Button type="submit">Search</Button>
+              <Button type="submit">{t('common.search')}</Button>
             </form>
           </div>
         </div>
@@ -185,14 +202,14 @@ export default function Header() {
               className="text-sm font-medium transition-colors hover:text-primary"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Products
+              {t('nav.products')}
             </Link>
             <Link
               href="/categories"
               className="text-sm font-medium transition-colors hover:text-primary"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Categories
+              {t('nav.categories')}
             </Link>
             {isAuthenticated && (
               <>
@@ -201,14 +218,14 @@ export default function Header() {
                   className="text-sm font-medium transition-colors hover:text-primary"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Wishlist
+                  {t('nav.wishlist')}
                 </Link>
                 <Link
                   href="/dashboard"
                   className="text-sm font-medium transition-colors hover:text-primary"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  My Account
+                  {t('nav.dashboard')}
                 </Link>
                 {user?.isAdmin && (
                   <Link
@@ -216,12 +233,12 @@ export default function Header() {
                     className="text-sm font-medium transition-colors hover:text-primary"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Admin Dashboard
+                    {t('nav.admin')}
                   </Link>
                 )}
                 <Button variant="outline" onClick={handleLogout} className="justify-start">
                   <LogOut className="mr-2 h-4 w-4" />
-                  Logout
+                  {t('nav.logout')}
                 </Button>
               </>
             )}
@@ -229,11 +246,11 @@ export default function Header() {
               <>
                 <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="outline" className="w-full">
-                    Login
+                    {t('nav.login')}
                   </Button>
                 </Link>
                 <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
-                  <Button className="w-full">Sign Up</Button>
+                  <Button className="w-full">{t('nav.register')}</Button>
                 </Link>
               </>
             )}
