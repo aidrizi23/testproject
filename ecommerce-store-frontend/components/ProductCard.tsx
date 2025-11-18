@@ -2,13 +2,13 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Star, ShoppingCart } from 'lucide-react';
+import { Star, ShoppingCart, Heart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ProductListItem } from '@/types';
 import { formatPrice } from '@/lib/utils';
-import { useAuthStore, useCartStore } from '@/lib/store';
+import { useAuthStore, useCartStore, useWishlistStore } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
@@ -20,8 +20,11 @@ interface ProductCardProps {
 export default function ProductCard({ product, compact = false }: ProductCardProps) {
   const { isAuthenticated } = useAuthStore();
   const { addToCart } = useCartStore();
+  const { wishlist, addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore();
   const { toast } = useToast();
   const router = useRouter();
+
+  const inWishlist = isInWishlist(product.id);
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -47,6 +50,30 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
     }
   };
 
+  const handleToggleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+
+    if (inWishlist) {
+      removeFromWishlist(product.id);
+      toast({
+        title: 'Removed from wishlist',
+        description: `${product.name} has been removed from your wishlist.`,
+      });
+    } else {
+      addToWishlist(product as any);
+      toast({
+        title: 'Added to wishlist',
+        description: `${product.name} has been added to your wishlist.`,
+      });
+    }
+  };
+
   const discount = product.compareAtPrice
     ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
     : 0;
@@ -68,6 +95,17 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
                 -{discount}%
               </Badge>
             )}
+            <button
+              onClick={handleToggleWishlist}
+              className="absolute left-1 top-1 rounded-full bg-white/90 p-1.5 shadow-sm transition-colors hover:bg-white"
+              aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+            >
+              <Heart
+                className={`h-3 w-3 ${
+                  inWishlist ? 'fill-red-500 text-red-500' : 'text-gray-600'
+                }`}
+              />
+            </button>
           </div>
 
           <CardContent className="p-2 sm:p-3">
@@ -129,6 +167,17 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
               Out of Stock
             </Badge>
           )}
+          <button
+            onClick={handleToggleWishlist}
+            className="absolute right-2 bottom-2 rounded-full bg-white/90 p-2 shadow-md transition-all hover:scale-110 hover:bg-white"
+            aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+          >
+            <Heart
+              className={`h-5 w-5 ${
+                inWishlist ? 'fill-red-500 text-red-500' : 'text-gray-600'
+              }`}
+            />
+          </button>
         </div>
 
         <CardContent className="p-4">

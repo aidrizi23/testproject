@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'use';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import ProductCard from '@/components/ProductCard';
+import { ProductCardSkeleton } from '@/components/skeletons';
 import api from '@/lib/api';
 import { ProductListItem, Category } from '@/types';
 
@@ -132,7 +133,7 @@ export default function ProductsPage() {
       {loading ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="h-96 animate-pulse rounded-lg bg-muted" />
+            <ProductCardSkeleton key={i} />
           ))}
         </div>
       ) : products.length === 0 ? (

@@ -8,6 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import api from '@/lib/api';
 import { Product, Review } from '@/types';
 import { formatPrice, formatDate } from '@/lib/utils';
@@ -24,6 +27,14 @@ export default function ProductDetailPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewData, setReviewData] = useState({
+    rating: 5,
+    title: '',
+    comment: '',
+  });
+  const [hoverRating, setHoverRating] = useState(0);
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -66,6 +77,52 @@ export default function ProductDetailPage() {
         description: 'Failed to add item to cart',
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+
+    if (!product) return;
+
+    setSubmittingReview(true);
+    try {
+      await api.post('/reviews', {
+        productId: product.id,
+        rating: reviewData.rating,
+        title: reviewData.title,
+        comment: reviewData.comment,
+      });
+
+      toast({
+        title: 'Review submitted',
+        description: 'Thank you for your review!',
+      });
+
+      // Reset form and refresh reviews
+      setReviewData({ rating: 5, title: '', comment: '' });
+      setShowReviewForm(false);
+
+      // Refresh reviews
+      const reviewsRes = await api.get(`/reviews/product/${params.id}`);
+      setReviews(reviewsRes.data);
+
+      // Refresh product to update rating
+      const productRes = await api.get(`/products/${params.id}`);
+      setProduct(productRes.data);
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to submit review',
+        variant: 'destructive',
+      });
+    } finally {
+      setSubmittingReview(false);
     }
   };
 
@@ -217,7 +274,91 @@ export default function ProductDetailPage() {
 
       {/* Reviews Section */}
       <div className="mt-16">
-        <h2 className="mb-6 text-2xl font-bold">Customer Reviews</h2>
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Customer Reviews</h2>
+          {isAuthenticated && !showReviewForm && (
+            <Button onClick={() => setShowReviewForm(true)}>Write a Review</Button>
+          )}
+        </div>
+
+        {/* Review Form */}
+        {showReviewForm && (
+          <Card className="mb-6">
+            <CardContent className="p-6">
+              <h3 className="mb-4 text-lg font-semibold">Write Your Review</h3>
+              <form onSubmit={handleSubmitReview} className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Rating</Label>
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        onClick={() => setReviewData({ ...reviewData, rating: star })}
+                        className="transition-transform hover:scale-110"
+                      >
+                        <Star
+                          className={`h-8 w-8 ${
+                            star <= (hoverRating || reviewData.rating)
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'text-muted'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                    <span className="ml-2 text-sm text-muted-foreground">
+                      ({reviewData.rating} star{reviewData.rating !== 1 ? 's' : ''})
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="review-title">Review Title (Optional)</Label>
+                  <Input
+                    id="review-title"
+                    placeholder="Summarize your review"
+                    value={reviewData.title}
+                    onChange={(e) =>
+                      setReviewData({ ...reviewData, title: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="review-comment">Your Review (Optional)</Label>
+                  <Textarea
+                    id="review-comment"
+                    placeholder="Share your thoughts about this product"
+                    value={reviewData.comment}
+                    onChange={(e) =>
+                      setReviewData({ ...reviewData, comment: e.target.value })
+                    }
+                    rows={4}
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <Button type="submit" disabled={submittingReview}>
+                    {submittingReview ? 'Submitting...' : 'Submit Review'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setShowReviewForm(false);
+                      setReviewData({ rating: 5, title: '', comment: '' });
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+
         {reviews.length === 0 ? (
           <p className="text-muted-foreground">No reviews yet. Be the first to review this product!</p>
         ) : (

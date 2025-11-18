@@ -23,6 +23,14 @@ interface CartState {
   clearCart: () => Promise<void>;
 }
 
+interface WishlistState {
+  wishlist: Product[];
+  addToWishlist: (product: Product) => void;
+  removeFromWishlist: (productId: number) => void;
+  isInWishlist: (productId: number) => boolean;
+  clearWishlist: () => void;
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -110,3 +118,31 @@ export const useCartStore = create<CartState>((set, get) => ({
     }
   },
 }));
+
+export const useWishlistStore = create<WishlistState>()(
+  persist(
+    (set, get) => ({
+      wishlist: [],
+      addToWishlist: (product: Product) => {
+        const { wishlist } = get();
+        if (!wishlist.find(p => p.id === product.id)) {
+          set({ wishlist: [...wishlist, product] });
+        }
+      },
+      removeFromWishlist: (productId: number) => {
+        const { wishlist } = get();
+        set({ wishlist: wishlist.filter(p => p.id !== productId) });
+      },
+      isInWishlist: (productId: number) => {
+        const { wishlist } = get();
+        return wishlist.some(p => p.id === productId);
+      },
+      clearWishlist: () => {
+        set({ wishlist: [] });
+      },
+    }),
+    {
+      name: 'wishlist-storage',
+    }
+  )
+);

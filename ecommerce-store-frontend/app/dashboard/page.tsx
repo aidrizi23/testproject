@@ -7,6 +7,7 @@ import { Package, User, MapPin } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { OrderSkeleton } from '@/components/skeletons';
 import { useAuthStore } from '@/lib/store';
 import api from '@/lib/api';
 import { OrderListItem } from '@/types';
@@ -103,7 +104,7 @@ export default function DashboardPage() {
           {loading ? (
             <div className="space-y-4">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-20 animate-pulse rounded-lg bg-muted" />
+                <OrderSkeleton key={i} />
               ))}
             </div>
           ) : orders.length === 0 ? (
