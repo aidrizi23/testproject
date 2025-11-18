@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, TrendingUp, Package, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import ProductCard from '@/components/ProductCard';
+import ProductCarousel from '@/components/ProductCarousel';
 import api from '@/lib/api';
 import { ProductListItem, Category } from '@/types';
 
@@ -96,35 +96,20 @@ export default function HomePage() {
       </section>
 
       {/* Featured Products Section */}
-      <section className="py-16">
+      <section className="py-12 md:py-16">
         <div className="container">
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight">Featured Products</h2>
-              <p className="mt-2 text-muted-foreground">
-                Check out our hand-picked selection
-              </p>
-            </div>
+          {loading ? (
+            <div className="h-64 animate-pulse rounded-lg bg-muted" />
+          ) : (
+            <ProductCarousel products={featuredProducts} title="Featured Products" />
+          )}
+          <div className="mt-6 text-center">
             <Link href="/products">
               <Button variant="outline">
-                View All <ArrowRight className="ml-2 h-4 w-4" />
+                View All Products <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
           </div>
-
-          {loading ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-96 animate-pulse rounded-lg bg-muted" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {featuredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
         </div>
       </section>
 

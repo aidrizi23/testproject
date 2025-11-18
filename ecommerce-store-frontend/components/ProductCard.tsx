@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Star, ShoppingCart } from 'lucide-react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ProductListItem } from '@/types';
@@ -14,9 +14,10 @@ import { useRouter } from 'next/navigation';
 
 interface ProductCardProps {
   product: ProductListItem;
+  compact?: boolean;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, compact = false }: ProductCardProps) {
   const { isAuthenticated } = useAuthStore();
   const { addToCart } = useCartStore();
   const { toast } = useToast();
@@ -49,6 +50,59 @@ export default function ProductCard({ product }: ProductCardProps) {
   const discount = product.compareAtPrice
     ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
     : 0;
+
+  if (compact) {
+    return (
+      <Link href={`/products/${product.id}`}>
+        <Card className="group h-full overflow-hidden transition-all hover:shadow-md">
+          <div className="relative aspect-square overflow-hidden bg-muted">
+            <Image
+              src={product.mainImageUrl || '/placeholder.png'}
+              alt={product.name}
+              fill
+              className="object-cover transition-transform group-hover:scale-105"
+              sizes="(max-width: 640px) 150px, 200px"
+            />
+            {discount > 0 && (
+              <Badge className="absolute right-1 top-1 text-xs" variant="destructive">
+                -{discount}%
+              </Badge>
+            )}
+          </div>
+
+          <CardContent className="p-2 sm:p-3">
+            <div className="mb-1 flex items-center gap-1 text-xs">
+              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+              <span className="font-medium">{product.averageRating.toFixed(1)}</span>
+            </div>
+
+            <h3 className="mb-1 line-clamp-2 text-sm font-semibold leading-tight">
+              {product.name}
+            </h3>
+
+            <div className="flex items-baseline gap-1">
+              <span className="text-sm font-bold sm:text-base">{formatPrice(product.price)}</span>
+              {product.compareAtPrice && (
+                <span className="text-xs text-muted-foreground line-through">
+                  {formatPrice(product.compareAtPrice)}
+                </span>
+              )}
+            </div>
+
+            <Button
+              className="mt-2 h-8 w-full text-xs"
+              onClick={handleAddToCart}
+              disabled={product.stockQuantity === 0}
+              size="sm"
+            >
+              <ShoppingCart className="mr-1 h-3 w-3" />
+              {product.stockQuantity === 0 ? 'Out' : 'Add'}
+            </Button>
+          </CardContent>
+        </Card>
+      </Link>
+    );
+  }
 
   return (
     <Link href={`/products/${product.id}`}>
@@ -94,7 +148,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             {product.categoryName}
           </div>
 
-          <div className="flex items-baseline gap-2">
+          <div className="mb-3 flex items-baseline gap-2">
             <span className="text-2xl font-bold">{formatPrice(product.price)}</span>
             {product.compareAtPrice && (
               <span className="text-sm text-muted-foreground line-through">
@@ -102,9 +156,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               </span>
             )}
           </div>
-        </CardContent>
 
-        <CardFooter className="p-4 pt-0">
           <Button
             className="w-full"
             onClick={handleAddToCart}
@@ -113,7 +165,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <ShoppingCart className="mr-2 h-4 w-4" />
             {product.stockQuantity === 0 ? 'Out of Stock' : 'Add to Cart'}
           </Button>
-        </CardFooter>
+        </CardContent>
       </Card>
     </Link>
   );
